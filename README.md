@@ -59,3 +59,23 @@ const iter = require('./iter');
   console.log(body.toString());
 })();
 ```
+
+# semaphore
+
+## semaphore.ExclusiveSemaphore
+
+The most general use Semaphore, it expects to stay in the same thread.
+
+```js
+const ExclusiveSemaphore = require('./semaphore').ExclusiveSemaphore;
+const semaphore = new ExclusiveSemaphore(+process.argv[2] || 1);
+;(async () => {
+  let {unlock} = await semaphore;
+  console.log('start: A');
+  await {
+    then: f => setTimeout(f, 1000)
+  }
+  console.log('close: A');
+  unlock();
+})();
+```

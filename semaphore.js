@@ -10,9 +10,9 @@ class Semaphore {
    * 
    * @throws {Error} If the Semaphore is already fully locked.
    * 
-   * @returns {{unlock:()=>void}
+   * @returns {{unlock:()=>void}}
    */
-  controller() {
+  sync() {
     if (!this._lock()) {
       throw Error(ERR_LOCKED);
     }
@@ -23,33 +23,12 @@ class Semaphore {
     });
   }
   /**
-   * Runs a block synchronously while locking the Semaphore.
-   * 
-   * @throws {Error} If the Semaphore is already fully locked.
-   * @param {()=>any} block
-   * @returns {any} the result of the block
-   */
-  sync(block) {
-    if (!this._lock()) {
-      throw Error(ERR_LOCKED);
-    }
-    try {
-      return block();
-    }
-    finally {
-      this._unlock(this);
-    }
-  }
-  /**
-   * Runs a block asynchronously while locking the Semaphore.
-   * This always locks synchronously but unlocks asynchronously.
-   * If the Semaphore cannot lock it queuest the block to execute
-   * when the Semaphore has space to lock again.
+   * Creates a controller to manually control locking & unlocking
+   * the Semaphore.
    *
-   * @param {()=>any} block
-   * @returns {Promise<any>} the result of the block
+   * @returns {Promise<{unlock:()=>void}>}
    */
-  async async(block) {
+  async then(f, r) {
     if (!this._lock()) {
       await {
         then: (f, r) => {
@@ -57,12 +36,11 @@ class Semaphore {
         }
       };
     }
-    try {
-      return await block();
-    }
-    finally {
-      this._unlock(this);
-    }
+    f(Object.create(null, {
+      unlock: {
+        value: this._unlock.bind(this)
+      }
+    }));
   }
 }
 class ExclusiveSemaphore extends Semaphore {
@@ -81,8 +59,8 @@ class ExclusiveSemaphore extends Semaphore {
   }
   _unlock() {
     this._locked--;
-    if (semaphore._waiting.length) {
-      const next = semaphore._waiting.shift();
+    if (this._waiting.length) {
+      const next = this._waiting.shift();
       next();
     }
   }
