@@ -1,6 +1,6 @@
 {
   "name": "@bradleymeck/thenables",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "some simple utilities for awaiting",
   "scripts": {
     "test": "set -e; for x in test/*; do node $x; done"
