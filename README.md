@@ -18,15 +18,15 @@ const iter = require('./iter');
 ;(async () => {
   const ee = fs.createReadStream(process.argv[2]);
   const stream = iter.Iter((onvalue, ondone, onerror) => {
-    stream.on('data', onvalue);
-    stream.on('error', (err) => {
-      stream.removeListener('data', onvalue);
-      stream.removeListener('done', ondone);
+    ee.on('data', onvalue);
+    ee.on('error', (err) => {
+      ee.removeListener('data', onvalue);
+      ee.removeListener('done', ondone);
       onerror(err);
     });
-    stream.on('close', (value) => {
-      stream.removeListener('data', onvalue);
-      stream.removeListener('error', onerror);
+    ee.on('close', (value) => {
+      ee.removeListener('data', onvalue);
+      ee.removeListener('error', onerror);
       ondone(value);
     });
   });
